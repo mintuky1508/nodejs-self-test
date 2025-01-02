@@ -30,16 +30,21 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v1
       with:
         role-to-assume: arn:aws:iam::396608767526:role/GitHubActionsOIDCRole  # Replace with your role ARN
-        aws-region: us-west-1  # Replace with your desired region
+        aws-region: us-west-1  # Replace with your desired AWS region
 
     # Step 5: Deploy to EC2
     - name: Deploy to EC2
       env:
         EC2_USER: ubuntu  # Replace with your EC2 username
         EC2_HOST: 13.52.101.44  # Replace with your EC2 public IP
+        EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}  # Store the private key in GitHub secrets
       run: |
+        # Create private key file from GitHub secret
+        echo "$EC2_PRIVATE_KEY" > mintu.pem
+        chmod 600 mintu.pem
+        
         # SSH into EC2 instance and deploy
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i mintu.pem $EC2_USER@$EC2_HOST << 'EOF'
           cd /home/ubuntu/simple-nodejs-website || exit 1
           git pull origin main || exit 1  # Pull latest code from GitHub
           npm install || exit 1          # Install dependencies
