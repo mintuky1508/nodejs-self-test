@@ -1,7 +1,7 @@
 #How to Deploy this nodejs aaplication on ubuntu ec2.
 
 1. create aws ec2.
-2. ssh ubuntu@<ec2-instance-private-ip> -i <xyz.pem>
+2. ssh ubuntu@ec2-instance-private-ip -i <xyz.pem>
 3. sudo su
 4. apt update
 5. apt install -y nodejs npm
