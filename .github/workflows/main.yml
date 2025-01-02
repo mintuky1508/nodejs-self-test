@@ -1,0 +1,47 @@
+name: Deploy Node.js App to EC2 using AWS OIDC
+
+on:
+  push:
+    branches:
+      - main  # Adjust the branch name as needed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        npm install
+
+    # Step 4: Setup AWS Credentials using OIDC
+    - name: Set up AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: arn:aws:iam::396608767526:role/GitHubActionsOIDCRole  # Replace with your role ARN
+        aws-region: us-west-1  # Replace with your desired region
+
+    # Step 5: Deploy to EC2
+    - name: Deploy to EC2
+      env:
+        EC2_USER: ubuntu  # Replace with your EC2 username
+        EC2_HOST: 13.52.101.44  # Replace with your EC2 public IP
+      run: |
+        # SSH into EC2 instance and deploy
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
+          cd /home/ubuntu/simple-nodejs-website || exit 1
+          git pull origin main || exit 1  # Pull latest code from GitHub
+          npm install || exit 1          # Install dependencies
+          pm2 restart server.js || exit 1 # Restart the Node.js app using pm2
+        EOF
